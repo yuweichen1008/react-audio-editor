@@ -1,116 +1,188 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
-import WaveSurfer from "wavesurfer.js";
+import React, { useCallback, useEffect,  useRef, useState,  useMemo } from "react";
+import { WaveSurfer, WaveForm, Region } from "wavesurfer-react";
+import RegionsPlugin from "wavesurfer.js/dist/plugin/wavesurfer.regions.min";
+import TimelinePlugin from "wavesurfer.js/dist/plugin/wavesurfer.timeline.min";
 
-const defaultregions = [
-    {
-        id: "region-1",
-        start: 0.5,
-        end: 10,
-        color: "rgba(0, 0, 0, .5)",
-        subtitle: "hello how are you"
-    }
-]
-
-const formWaveSurferOptions = ref => ({
-    container: ref,
-    waveColor: "#eee",
-    progressColor: "OrangeRed",
-    cursorColor: "OrangeRed",
-    barWidth: 3,
-    barRadius: 3,
-    responsive: true,
-    height: 150,
-    // If true, normalize by the maximum peak instead of 1.0.
-    normalize: true,
-    // Use the PeakCache to improve rendering speed of large waveforms.
-    partialRender: true,
-    backend: 'MediaElement',
-    // plugins: [
-    //     WaveSurfer.regions.create(),
-    //     WaveSurfer.minimap.create({
-    //         height: 30,
-    //         waveColor: '#ddd',
-    //         progressColor: '#999'
-    //     }),
-    //     WaveSurfer.timeline.create({
-    //         container: '#wave-timeline'
-    //     }),
-    //     WaveSurfer.cursor.create()
-    // ]
-});
-
-const MyWaveformer = ( {url} ) => {
-    const [playing, setPlay] = useState(false)
-    const [regions, setRegions] = useState(defaultregions[0])
-    const waveformRef = useRef(null);
-    const wavesurfer = useRef(null);
-    const regionRef = useRef(regions);
-
-    useEffect(() => {
-        setPlay(false)
-
-        const options = formWaveSurferOptions(waveformRef.current);
-
-        wavesurfer.current = WaveSurfer.create(options);
-        
-
-        return () => {
-            wavesurfer.current.destroy();
-        }
-    }, [url])
-
-    const handlePlayPause = () => {
-        setPlay(!playing);
-        wavesurfer.current.playPause();
-    };
-
-    const handleWSMount = useCallback(
-        waveSurfer => {
-            wavesurfer.current = waveSurfer;
-
-            if(wavesurfer.current){
-                console.log("WaveSurfer load url");
-                wavesurfer.current.load(url);
-    
-                wavesurfer.current.on("region-created", regionCreatedHandler);
-                // wavesurfer.current.load("../../../media/example.mp4")
-                regionRef.current = regions;
-                wavesurfer.current.on("ready", () => {
-                    console.log("WaveSurfer is ready");
-                    // regionRef.current = regions;
-                    // wavesurfer.current.loadRegion(regionRef);
-                })
-
-                wavesurfer.current.on("region-removed", region => {
-                    console.log("region-removed --> ", region);
-                });
-            }
-        },
-        [regionCreatedHandler, regions, url],
-    );
-
-    const regionCreatedHandler = useCallback(
-        region => {
-          console.log("region-created --> region:", region);
-    
-          if (region.data.systemRegionId) return;
-    
-          setRegions([
-            ...regionRef.current,
-            { ...region, data: { ...region.data, subtitle: "default" } }
-          ]);
-        },
-        [regionRef]
-    );
-
-    return (
-        <div>
-            <div id="waveform" ref={waveformRef}/>
-            <div className="controls">
-                <button onClick={handlePlayPause}>{!playing ? "Play" : "Pause"}</button>
-            </div>
-        </div>
-    )
+function generateNum(min, max) {
+    return Math.random() * (max - min + 1) + min;
 }
 
-export default MyWaveformer
+function generateTwoNumsWithDistance(distance, min, max) {
+    const num1 = generateNum(min, max);
+    const num2 = generateNum(min, max);
+    // if num2 - num1 < 10
+    if (num2 - num1 >= 10) {
+        return [num1, num2];
+    }
+    return generateTwoNumsWithDistance(distance, min, max);
+}
+
+const MyWaveformer = ({ url }) => {
+    const [timelineVis, setTimelineVis] = useState(true);
+
+    const plugins = useMemo(() => {
+        return [
+            {
+                plugin: RegionsPlugin,
+                options: { dragSelection: true }
+            },
+            timelineVis && {
+                plugin: TimelinePlugin,
+                options: {
+                    container: "#timeline"
+                }
+            }
+        ].filter(Boolean);
+    }, [timelineVis]);
+
+    const toggleTimeline = useCallback(() => {
+        setTimelineVis(!timelineVis);
+    }, [timelineVis]);
+
+    const [regions, setRegions] = useState([
+        {
+            id: "region-1",
+            start: 0.5,
+            end: 10,
+            color: "rgba(0, 0, 0, .5)",
+            data: {
+                systemRegionId: 31
+            }
+        },
+        {
+            id: "region-2",
+            start: 15,
+            end: 25,
+            color: "rgba(225, 195, 100, .5)",
+            data: {
+                systemRegionId: 32
+            }
+        },
+        {
+            id: "region-3",
+            start: 35,
+            end: 45,
+            color: "rgba(25, 95, 195, .5)",
+            data: {
+                systemRegionId: 33
+            }
+        }
+    ]);
+
+    // use regions ref to pass it inside useCallback
+    // so it will use always the most fresh version of regions list
+    const regionsRef = useRef(regions);
+
+    useEffect(() => {
+        regionsRef.current = regions;
+    }, [regions]);
+
+    const regionCreatedHandler = useCallback(
+        (region) => {
+            console.log("region-created --> region:", region);
+
+            if (region.data.systemRegionId) return;
+
+            setRegions([
+                ...regionsRef.current,
+                { ...region, data: { ...region.data, systemRegionId: -1 } }
+            ]);
+        },
+        [regionsRef]
+    );
+
+    const wavesurferRef = useRef();
+    const handleWSMount = useCallback(
+        (waveSurfer) => {
+            wavesurferRef.current = waveSurfer;
+            if (wavesurferRef.current) {
+                wavesurferRef.current.load(url);
+
+                wavesurferRef.current.on("region-created", regionCreatedHandler);
+
+                wavesurferRef.current.on("ready", () => {
+                    console.log("WaveSurfer is ready");
+                });
+
+                wavesurferRef.current.on("region-removed", (region) => {
+                    console.log("region-removed --> ", region);
+                });
+
+                wavesurferRef.current.on("loading", (data) => {
+                    console.log("loading --> ", data);
+                });
+
+                if (window) {
+                    window.surferidze = wavesurferRef.current;
+                }
+            }
+        },
+        [url, regionCreatedHandler]
+    );
+
+    const generateRegion = useCallback(() => {
+        if (!wavesurferRef.current) return;
+        const minTimestampInSeconds = 0;
+        const maxTimestampInSeconds = wavesurferRef.current.getDuration();
+        const distance = generateNum(0, 10);
+        const [min, max] = generateTwoNumsWithDistance(
+            distance,
+            minTimestampInSeconds,
+            maxTimestampInSeconds
+        );
+
+        const r = generateNum(0, 255);
+        const g = generateNum(0, 255);
+        const b = generateNum(0, 255);
+
+        setRegions([
+            ...regions,
+            {
+                id: `custom-${generateNum(0, 9999)}`,
+                start: min,
+                end: max,
+                color: `rgba(${r}, ${g}, ${b}, 0.5)`
+            }
+        ]);
+    }, [regions, wavesurferRef]);
+
+    const removeLastRegion = useCallback(() => {
+        let nextRegions = [...regions];
+
+        nextRegions.pop();
+
+        setRegions(nextRegions);
+    }, [regions]);
+
+    const play = useCallback(() => {
+        wavesurferRef.current.playPause();
+    }, []);
+
+    const handleRegionUpdate = useCallback((region, smth) => {
+        console.log("region-update-end --> region:", region);
+        console.log(smth);
+    }, []);
+
+    return (
+        <div className="App">
+            <WaveSurfer plugins={plugins} onMount={handleWSMount}>
+                <WaveForm id="waveform">
+                    {regions.map((regionProps) => (
+                        <Region
+                            onUpdateEnd={handleRegionUpdate}
+                            key={regionProps.id}
+                            {...regionProps}
+                        />
+                    ))}
+                </WaveForm>
+                <div id="timeline" />
+            </WaveSurfer>
+            <button onClick={play}>Play / Pause</button>
+            <button onClick={generateRegion}>Generate Region</button>
+            <button onClick={removeLastRegion}>Remove Last Region</button>
+            <button onClick={toggleTimeline}>Toggle Timeline</button>
+        </div>
+    );
+}
+
+export default MyWaveformer;
