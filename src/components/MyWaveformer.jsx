@@ -2,6 +2,7 @@ import React, { useCallback, useEffect,  useRef, useState,  useMemo } from "reac
 import { WaveSurfer, WaveForm, Region } from "wavesurfer-react";
 import RegionsPlugin from "wavesurfer.js/dist/plugin/wavesurfer.regions.min";
 import TimelinePlugin from "wavesurfer.js/dist/plugin/wavesurfer.timeline.min";
+import Annotation from "./Annotation";
 
 function generateNum(min, max) {
     return Math.random() * (max - min + 1) + min;
@@ -10,7 +11,6 @@ function generateNum(min, max) {
 function generateTwoNumsWithDistance(distance, min, max) {
     const num1 = generateNum(min, max);
     const num2 = generateNum(min, max);
-    // if num2 - num1 < 10
     if (num2 - num1 >= 10) {
         return [num1, num2];
     }
@@ -18,7 +18,26 @@ function generateTwoNumsWithDistance(distance, min, max) {
 }
 
 const MyWaveformer = ({ url }) => {
+    const wavesurferRef = useRef();
     const [timelineVis, setTimelineVis] = useState(true);
+    const [annotate, setAnnotate] = useState([
+        {
+            "id" : 1,
+            "start": 10,
+            "end" : 20,
+            "subtitle" : "hello"
+        }
+    ])
+
+    var currentAnnotate = [
+        {
+            "id" : -1,
+            "start" : 10,
+            "end" : 20,
+            "subtitle" : "hello"
+        }
+
+    ]
 
     const plugins = useMemo(() => {
         return [
@@ -48,24 +67,6 @@ const MyWaveformer = ({ url }) => {
             data: {
                 systemRegionId: 31
             }
-        },
-        {
-            id: "region-2",
-            start: 15,
-            end: 25,
-            color: "rgba(225, 195, 100, .5)",
-            data: {
-                systemRegionId: 32
-            }
-        },
-        {
-            id: "region-3",
-            start: 35,
-            end: 45,
-            color: "rgba(25, 95, 195, .5)",
-            data: {
-                systemRegionId: 33
-            }
         }
     ]);
 
@@ -76,6 +77,22 @@ const MyWaveformer = ({ url }) => {
     useEffect(() => {
         regionsRef.current = regions;
     }, [regions]);
+
+    const editAnnotation = useCallback(
+        (region) => {
+            wavesurferRef.current.play(region.start, region.end);
+        let idx = Object.keys(annotate).length + 1;
+        if(region.id > idx){ // add new Annotation section
+            let copy = [...annotate];
+            console.log("ID " + idx);
+            console.log("Start" + region.start);
+            console.log("End " + region.end);
+            copy = [...copy, {id : idx, start : region.start, end : region.end}]
+            setAnnotate(copy);
+        }
+        },
+        [annotate],
+    )
 
     const regionCreatedHandler = useCallback(
         (region) => {
@@ -91,7 +108,6 @@ const MyWaveformer = ({ url }) => {
         [regionsRef]
     );
 
-    const wavesurferRef = useRef();
     const handleWSMount = useCallback(
         (waveSurfer) => {
             wavesurferRef.current = waveSurfer;
@@ -102,6 +118,7 @@ const MyWaveformer = ({ url }) => {
 
                 wavesurferRef.current.on("ready", () => {
                     console.log("WaveSurfer is ready");
+                    wavesurferRef.enableDragSelection({});
                 });
 
                 wavesurferRef.current.on("region-removed", (region) => {
@@ -120,6 +137,15 @@ const MyWaveformer = ({ url }) => {
         [url, regionCreatedHandler]
     );
 
+    useEffect(() => {
+        if (wavesurferRef.current) {
+            wavesurferRef.current.on("region-click", (region) => {
+                console.log("region-click -->", region)
+                editAnnotation(region)
+            });
+        }
+    }, [editAnnotation])
+    
     const generateRegion = useCallback(() => {
         if (!wavesurferRef.current) return;
         const minTimestampInSeconds = 0;
@@ -160,11 +186,12 @@ const MyWaveformer = ({ url }) => {
 
     const handleRegionUpdate = useCallback((region, smth) => {
         console.log("region-update-end --> region:", region);
+        // update Annotation start end
         console.log(smth);
     }, []);
 
     return (
-        <div className="App">
+        <div>
             <WaveSurfer plugins={plugins} onMount={handleWSMount}>
                 <WaveForm id="waveform">
                     {regions.map((regionProps) => (
@@ -181,6 +208,13 @@ const MyWaveformer = ({ url }) => {
             <button onClick={generateRegion}>Generate Region</button>
             <button onClick={removeLastRegion}>Remove Last Region</button>
             <button onClick={toggleTimeline}>Toggle Timeline</button>
+            <form>
+                <input type="text">{currentAnnotate.id}</input>
+                <input type="text">{currentAnnotate.start}</input>
+                <input type="text">{currentAnnotate.end}</input>
+                <input type="text">{currentAnnotate.subtitle}</input>
+            </form>
+            <Annotation data={annotate} />
         </div>
     );
 }

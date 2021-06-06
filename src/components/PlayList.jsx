@@ -11,7 +11,10 @@ const PlayList = ({ tracks, selectedTrack, setSelectedTrack }) => {
               ? "playlist-item selected"
               : "playlist-item"
           }
-          onClick={() => setSelectedTrack(track)}
+          onClick={() => {
+            setSelectedTrack(track);
+            console.log("Select another Track")
+          }}
         >
           {track.title}
         </div>
