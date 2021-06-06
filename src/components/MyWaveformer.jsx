@@ -29,15 +29,16 @@ const MyWaveformer = ({ url }) => {
         }
     ])
 
-    var currentAnnotate = [
-        {
-            "id" : -1,
-            "start" : 10,
-            "end" : 20,
-            "subtitle" : "hello"
-        }
-
-    ]
+    var currentAnnotate = {
+        "Annotate":[
+            {
+                "id" : -1,
+                "start" : 10,
+                "end" : 20,
+                "subtitle" : "hello"
+            }
+        ]
+    }
 
     const plugins = useMemo(() => {
         return [
@@ -209,10 +210,10 @@ const MyWaveformer = ({ url }) => {
             <button onClick={removeLastRegion}>Remove Last Region</button>
             <button onClick={toggleTimeline}>Toggle Timeline</button>
             <form>
-                <input type="text">{currentAnnotate.id}</input>
-                <input type="text">{currentAnnotate.start}</input>
-                <input type="text">{currentAnnotate.end}</input>
-                <input type="text">{currentAnnotate.subtitle}</input>
+                <input type="text">{currentAnnotate.Annotate.id}</input>
+                <input type="text">{currentAnnotate.Annotate.start}</input>
+                <input type="text">{currentAnnotate.Annotate.end}</input>
+                <input type="text">{currentAnnotate.Annotate.subtitle}</input>
             </form>
             <Annotation data={annotate} />
         </div>
