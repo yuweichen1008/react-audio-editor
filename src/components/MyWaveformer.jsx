@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect,  useRef, useState,  useMemo } from "react";
+import React, { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { WaveSurfer, WaveForm, Region } from "wavesurfer-react";
 import RegionsPlugin from "wavesurfer.js/dist/plugin/wavesurfer.regions.min";
 import TimelinePlugin from "wavesurfer.js/dist/plugin/wavesurfer.timeline.min";
@@ -9,6 +9,7 @@ function generateNum(min, max) {
 }
 
 function generateTwoNumsWithDistance(distance, min, max) {
+    // TODO find last created region and add rand to min
     const num1 = generateNum(min, max);
     const num2 = generateNum(min, max);
     if (num2 - num1 >= 10) {
@@ -19,26 +20,21 @@ function generateTwoNumsWithDistance(distance, min, max) {
 
 const MyWaveformer = ({ url }) => {
     const wavesurferRef = useRef();
+    const [isEdit, setisEdit] = useState(false);
     const [timelineVis, setTimelineVis] = useState(true);
-    const [annotate, setAnnotate] = useState([
+    const [annotate, setAnnotate] = useState(null);
+    const [regions, setRegions] = useState([
         {
-            "id" : 1,
-            "start": 10,
-            "end" : 20,
-            "subtitle" : "hello"
-        }
-    ])
-
-    var currentAnnotate = {
-        "Annotate":[
-            {
-                "id" : -1,
-                "start" : 10,
-                "end" : 20,
-                "subtitle" : "hello"
+            id: "region-1",
+            start: 0.5,
+            end: 10,
+            color: "rgba(0, 0, 0, .5)",
+            data: {
+                systemRegionId: 31
             }
-        ]
-    }
+        }
+    ]);
+    const [currentAnnotate, setCurrentAnnotate] = useState(); // for input editor
 
     const plugins = useMemo(() => {
         return [
@@ -59,20 +55,6 @@ const MyWaveformer = ({ url }) => {
         setTimelineVis(!timelineVis);
     }, [timelineVis]);
 
-    const [regions, setRegions] = useState([
-        {
-            id: "region-1",
-            start: 0.5,
-            end: 10,
-            color: "rgba(0, 0, 0, .5)",
-            data: {
-                systemRegionId: 31
-            }
-        }
-    ]);
-
-    // use regions ref to pass it inside useCallback
-    // so it will use always the most fresh version of regions list
     const regionsRef = useRef(regions);
 
     useEffect(() => {
@@ -82,15 +64,26 @@ const MyWaveformer = ({ url }) => {
     const editAnnotation = useCallback(
         (region) => {
             wavesurferRef.current.play(region.start, region.end);
-        let idx = Object.keys(annotate).length + 1;
-        if(region.id > idx){ // add new Annotation section
-            let copy = [...annotate];
-            console.log("ID " + idx);
+            let idx = -1;
+            let len = 0;
+            if (annotate) {
+                len = Object.keys(annotate).length;
+                idx = len + 1;
+            }
+            region.start = Math.round(region.start);
+            region.end = Math.round(region.end);
+            console.log("ID " + region.id);
             console.log("Start" + region.start);
             console.log("End " + region.end);
-            copy = [...copy, {id : idx, start : region.start, end : region.end}]
-            setAnnotate(copy);
-        }
+            if (annotate) {
+                setAnnotate((preAnnot) => [...preAnnot, { id: idx, start: region.start, end: region.end, subtitle: "default" }]);
+                console.log("Annotate object length: " + Object.keys(annotate).length)
+            } else {
+                setAnnotate([{ id: 1, start: region.start, end: region.end, subtitle: "default" }])
+            }
+            // update current
+            setCurrentAnnotate(region)
+            setisEdit(true)
         },
         [annotate],
     )
@@ -126,9 +119,9 @@ const MyWaveformer = ({ url }) => {
                     console.log("region-removed --> ", region);
                 });
 
-                wavesurferRef.current.on("loading", (data) => {
-                    console.log("loading --> ", data);
-                });
+                // wavesurferRef.current.on("loading", (data) => {
+                //     console.log("loading --> ", data);
+                // });
 
                 if (window) {
                     window.surferidze = wavesurferRef.current;
@@ -146,7 +139,7 @@ const MyWaveformer = ({ url }) => {
             });
         }
     }, [editAnnotation])
-    
+
     const generateRegion = useCallback(() => {
         if (!wavesurferRef.current) return;
         const minTimestampInSeconds = 0;
@@ -187,9 +180,21 @@ const MyWaveformer = ({ url }) => {
 
     const handleRegionUpdate = useCallback((region, smth) => {
         console.log("region-update-end --> region:", region);
-        // update Annotation start end
         console.log(smth);
-    }, []);
+        if (isEdit) {
+            region.start = Math.round(region.start);
+            region.end = Math.round(region.end);
+            editAnnotation(region)
+        }
+    }, [isEdit, editAnnotation]);
+
+    const updateAnnotation = () => {
+
+    }
+
+    const deleteAnnotation = () => {
+
+    }
 
     return (
         <div>
@@ -205,16 +210,31 @@ const MyWaveformer = ({ url }) => {
                 </WaveForm>
                 <div id="timeline" />
             </WaveSurfer>
-            <button onClick={play}>Play / Pause</button>
-            <button onClick={generateRegion}>Generate Region</button>
-            <button onClick={removeLastRegion}>Remove Last Region</button>
-            <button onClick={toggleTimeline}>Toggle Timeline</button>
-            <form>
-                <input type="text">{currentAnnotate.Annotate.id}</input>
-                <input type="text">{currentAnnotate.Annotate.start}</input>
-                <input type="text">{currentAnnotate.Annotate.end}</input>
-                <input type="text">{currentAnnotate.Annotate.subtitle}</input>
-            </form>
+            <div className="grid grid-cols-4 bg-red-500">
+                <button onClick={play}>Play / Pause</button>
+                <button onClick={generateRegion}>Generate Region</button>
+                <button onClick={removeLastRegion}>Remove Last Region</button>
+                <button onClick={toggleTimeline}>Toggle Timeline</button>
+            </div>
+            {isEdit &&
+                <form className="ml-3 mt-4 flex flex-col justify-items-center max-w-lg">
+                    <div>
+                        <label>Start time</label>
+                        <input value={currentAnnotate.start}></input>
+                    </div>
+                    <div>
+                        <label>End time</label>
+                        <input value={currentAnnotate.end}></input>
+                    </div>
+                    <div>
+                        <label>Subtitle</label>
+                        <input value={currentAnnotate.subtitle}></input>
+                    </div>
+
+                    <button onClick={updateAnnotation}>Update Annotation</button>
+                    <button onClick={deleteAnnotation}>Delete Annotation</button>
+                </form>
+            }
             <Annotation data={annotate} />
         </div>
     );
