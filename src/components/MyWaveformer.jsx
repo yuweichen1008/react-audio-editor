@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState, useMemo } from "react";
-import { WaveSurfer, WaveForm, Region } from "wavesurfer-react";
+import { WaveSurfer, WaveForm } from "wavesurfer-react";
+// import { Region } from "wavesurfer-react";
 import RegionsPlugin from "wavesurfer.js/dist/plugin/wavesurfer.regions.min";
 import TimelinePlugin from "wavesurfer.js/dist/plugin/wavesurfer.timeline.min";
 import Annotation from "./Annotation";
@@ -23,18 +24,12 @@ const MyWaveformer = ({ url }) => {
     const [isEdit, setisEdit] = useState(false);
     const [timelineVis, setTimelineVis] = useState(true);
     const [annotate, setAnnotate] = useState(null);
-    const [regions, setRegions] = useState([
-        {
-            id: "region-1",
-            start: 0.5,
-            end: 10,
-            color: "rgba(0, 0, 0, .5)",
-            data: {
-                systemRegionId: 31
-            }
-        }
-    ]);
-    const [currentAnnotate, setCurrentAnnotate] = useState(); // for input editor
+    const [zoomLevel, setZoomLevel] = useState(1);
+    // const [regions, setRegions] = useState(null);
+    const [regions, setRegions] = useState();
+    const [regionStart, setRegionStart] = useState(0)
+    const [regionEnd, setRegionEnd] = useState(0)
+    const [regionSubtitle, setRegionSubtitle] = useState("")
 
     const plugins = useMemo(() => {
         return [
@@ -61,9 +56,22 @@ const MyWaveformer = ({ url }) => {
         regionsRef.current = regions;
     }, [regions]);
 
+    const setCurrentAnnotate = useCallback(({ start, end, sub }) => {
+        setRegionStart(start);
+        setRegionEnd(end);
+        setRegionSubtitle(sub);
+    }, []);
     const editAnnotation = useCallback(
+
         (region) => {
-            wavesurferRef.current.play(region.start, region.end);
+
+            // function declare
+            // const setCurrentAnnotate = ({ start, end, sub }) => {
+            //     setRegionStart(start);
+            //     setRegionEnd(end);
+            //     setRegionSubtitle(sub);
+            // };
+
             let idx = -1;
             let len = 0;
             if (annotate) {
@@ -77,15 +85,15 @@ const MyWaveformer = ({ url }) => {
             console.log("End " + region.end);
             if (annotate) {
                 setAnnotate((preAnnot) => [...preAnnot, { id: idx, start: region.start, end: region.end, subtitle: "default" }]);
-                console.log("Annotate object length: " + Object.keys(annotate).length)
+                console.log("Annotate object length: " + Object.keys(annotate).length);
             } else {
-                setAnnotate([{ id: 1, start: region.start, end: region.end, subtitle: "default" }])
+                setAnnotate([{ id: 1, start: region.start, end: region.end, subtitle: "default" }]);
             }
             // update current
-            setCurrentAnnotate(region)
-            setisEdit(true)
+            setCurrentAnnotate({ start: region.start, end: region.end, subtitle: "default" });
+            setisEdit(true);
         },
-        [annotate],
+        [annotate, setCurrentAnnotate],
     )
 
     const regionCreatedHandler = useCallback(
@@ -93,52 +101,24 @@ const MyWaveformer = ({ url }) => {
             console.log("region-created --> region:", region);
 
             if (region.data.systemRegionId) return;
-
-            setRegions([
-                ...regionsRef.current,
-                { ...region, data: { ...region.data, systemRegionId: -1 } }
-            ]);
-        },
-        [regionsRef]
-    );
-
-    const handleWSMount = useCallback(
-        (waveSurfer) => {
-            wavesurferRef.current = waveSurfer;
-            if (wavesurferRef.current) {
-                wavesurferRef.current.load(url);
-
-                wavesurferRef.current.on("region-created", regionCreatedHandler);
-
-                wavesurferRef.current.on("ready", () => {
-                    console.log("WaveSurfer is ready");
-                    wavesurferRef.enableDragSelection({});
-                });
-
-                wavesurferRef.current.on("region-removed", (region) => {
-                    console.log("region-removed --> ", region);
-                });
-
-                // wavesurferRef.current.on("loading", (data) => {
-                //     console.log("loading --> ", data);
-                // });
-
-                if (window) {
-                    window.surferidze = wavesurferRef.current;
-                }
+            if(regions){
+                setRegions((preRegion) => [...preRegion, { ...region.data, systemRegionId: -1 }]);
+            }else{
+                setRegions({ ...region.data, systemRegionId: -1 });
             }
         },
-        [url, regionCreatedHandler]
+        [regions]
     );
 
     useEffect(() => {
         if (wavesurferRef.current) {
             wavesurferRef.current.on("region-click", (region) => {
-                console.log("region-click -->", region)
-                editAnnotation(region)
+                console.log("region-click -->", region);
+                editAnnotation(region);
+                setCurrentAnnotate({ start: region.start, end: region.end, subtitle: "default" })
             });
         }
-    }, [editAnnotation])
+    }, [editAnnotation, setCurrentAnnotate])
 
     const generateRegion = useCallback(() => {
         if (!wavesurferRef.current) return;
@@ -188,25 +168,68 @@ const MyWaveformer = ({ url }) => {
         }
     }, [isEdit, editAnnotation]);
 
-    const updateAnnotation = () => {
-
+    const updateAnnotation = (event) => {
+        console.log(event);
+        event.preventDefault();
     }
 
-    const deleteAnnotation = () => {
-
+    const deleteAnnotation = (event) => {
+        console.log(event);
+        event.preventDefault();
     }
+
+    const handleWSMount = useCallback(
+        (waveSurfer) => {
+            wavesurferRef.current = waveSurfer;
+            if (wavesurferRef.current) {
+                wavesurferRef.current.load(url);
+
+                wavesurferRef.current.on("region-created", regionCreatedHandler);
+
+                wavesurferRef.current.on("ready", () => {
+                    console.log("WaveSurfer is ready");
+                    wavesurferRef.enableDragSelection({});
+                });
+
+                var slider = document.querySelector('#slider');
+
+                slider.oninput = function () {
+                    var zL = Number(slider.value);
+                    setZoomLevel(zL);
+                    console.log("zoom level change to " + zL);
+                };
+                wavesurferRef.current.on("region-removed", (region) => {
+                    console.log("region-removed --> ", region);
+                });
+
+                wavesurferRef.current.on("loading", (data) => {
+                    console.log("loading --> ", data);
+                });
+
+                wavesurferRef.current.on("region-update-end", (region, smth) => {
+                    setisEdit(true)
+                    handleRegionUpdate(region, smth);
+                })
+
+                if (window) {
+                    window.surferidze = wavesurferRef.current;
+                }
+            }
+        },
+        [url, regionCreatedHandler, handleRegionUpdate]
+    );
 
     return (
         <div>
-            <WaveSurfer plugins={plugins} onMount={handleWSMount}>
+            <WaveSurfer plugins={plugins} onMount={handleWSMount} zoomLevel={zoomLevel}>
                 <WaveForm id="waveform">
-                    {regions.map((regionProps) => (
+                    {/* {regions.map((regionProps) => (
                         <Region
                             onUpdateEnd={handleRegionUpdate}
                             key={regionProps.id}
                             {...regionProps}
                         />
-                    ))}
+                    ))} */}
                 </WaveForm>
                 <div id="timeline" />
             </WaveSurfer>
@@ -217,24 +240,30 @@ const MyWaveformer = ({ url }) => {
                 <button onClick={toggleTimeline}>Toggle Timeline</button>
             </div>
             {isEdit &&
-                <form className="ml-3 mt-4 flex flex-col justify-items-center max-w-lg">
+                <form className="flex flex-col max-w-lg mt-4 ml-3 justify-items-center">
                     <div>
                         <label>Start time</label>
-                        <input value={currentAnnotate.start}></input>
+                        <input value={regionStart}
+                            onChange={e => setRegionStart(e.target.value)}></input>
                     </div>
                     <div>
                         <label>End time</label>
-                        <input value={currentAnnotate.end}></input>
+                        <input value={regionEnd}
+                            onChange={e => setRegionEnd(e.target.value)}></input>
                     </div>
                     <div>
                         <label>Subtitle</label>
-                        <input value={currentAnnotate.subtitle}></input>
+                        <input value={regionSubtitle}
+                            onChange={e => setRegionSubtitle(e.target.value)}></input>
                     </div>
 
                     <button onClick={updateAnnotation}>Update Annotation</button>
                     <button onClick={deleteAnnotation}>Delete Annotation</button>
                 </form>
             }
+            <div id="zoom-slider">
+                <input id="slider" type="range" min="1" max="200" value="1" className="w-full" />
+            </div>
             <Annotation data={annotate} />
         </div>
     );

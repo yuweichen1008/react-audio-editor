@@ -23,7 +23,6 @@ const Annotation = ( ...data: Array<Data>) => {
                     {data &&
                      data.map( entry => {
                          return(<tr key = {entry.id}>
-                            <td>{entry.id}</td>
                             <td>{entry.start}</td>
                             <td>{entry.end}</td>
                             <td>{entry.subtitle}</td>
