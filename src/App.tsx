@@ -25,12 +25,24 @@ function App() {
       <header className="App-header">
       </header>
       <main>
-        <MyWaveformer url={selectedTrack.url}/>
-        <PlayList
-          tracks={tracks}
-          selectedTrack={selectedTrack}
-          setSelectedTrack={setSelectedTrack}
-        />
+        <div className="flex justify-center mt-12">
+
+          <input className="py-2 text-sm text-black placeholder-gray-500 border border-gray-200 w-96 focus:border-light-blue-500"
+            type="text"
+            placeholder="Input URL" />
+          <button className="block px-3 py-3 ml-6 border border-blue-300 rounded-lg">Download YouTube Video</button>
+        </div>
+        <div className="justify-center w-full ">
+          <MyWaveformer url={selectedTrack.url} />
+        </div>
+        <div className="justify-center w-full ">
+
+          <PlayList
+            tracks={tracks}
+            selectedTrack={selectedTrack}
+            setSelectedTrack={setSelectedTrack}
+          />
+        </div>
       </main>
     </div>
   );

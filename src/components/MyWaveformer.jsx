@@ -12,7 +12,7 @@ const MyWaveformer = ({ url }) => {
     // const [isEdit, setisEdit] = useState(false);
     const [timelineVis, setTimelineVis] = useState(true);
     const [annotate, setAnnotate] = useState([]);
-    const [zoomLevel, setZoomLevel] = useState(1);
+    const [zoomLevel, setZoomLevel] = useState(5);
 
     const [regions, setRegions] = useState([]);
     const [currentRegionID, setCurrentRegionID] = useState(0)
@@ -22,7 +22,39 @@ const MyWaveformer = ({ url }) => {
     const [regionEnd, setRegionEnd] = useState(0)
     const [regionSubtitle, setRegionSubtitle] = useState("")
 
-    // zoom
+    // load url's default annotation file
+    useEffect(() => {
+        if (url === "") return;
+        const getData = (url) => {
+            // let filelocation = 'data/' + url.substring(url.lastIndexOf('/')+1).split('.').slice(0,-1) + '.json';
+            let filelocation = 'video1.json'
+            console.log(filelocation);
+            fetch(filelocation,{
+                headers : { 
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json'
+                 }
+               })
+                .then(response => {
+                    const contentType = response.headers.get("content-type");
+                    if (contentType && contentType.indexOf("application/json") !== -1) {
+                        return response.json().then(data => {
+                          // process your JSON data further
+                          console.log("Data " + data)
+                        });
+                      } else {
+                        return response.text().then(text => {
+                          // this is text, do something with it
+                          console.log("Text" + text)
+                        });
+                      }
+                })
+                // .then(json => {
+                //     console.log("Data: " + json);
+                // });
+        }
+        getData(url)
+    }, [url])
 
     useEffect(() => {
         regionsRef.current = regions;
@@ -138,7 +170,7 @@ const MyWaveformer = ({ url }) => {
                     console.log("region-click -->", region);
                     setCurrentRegionID(region.id);
                 });
-                
+
                 if (window) {
                     window.surferidze = wavesurferRef.current;
                 }
@@ -159,8 +191,8 @@ const MyWaveformer = ({ url }) => {
     }
 
     return (
-        <div>
-            <WaveSurfer plugins={plugins} onMount={handleWSMount} zoomLevel={zoomLevel}>
+        <div className="px-16">
+            <WaveSurfer plugins={plugins} onMount={handleWSMount}>
                 <WaveForm id="waveform">
                     {/* {regions.map((regionProps) => (
                         <Region
@@ -171,45 +203,50 @@ const MyWaveformer = ({ url }) => {
                     ))} */}
                 </WaveForm>
                 <div id="timeline" />
-                <div id="zoom-slider">
+
+                <div id="zoom-slider" className="flex justify-items-center">
                     <input id="slider"
                         type="range"
-                        min="1"
-                        max="200"
+                        min="5"
+                        max="100"
                         step="1"
                         value={zoomLevel}
-                        className="w-50"
+                        className="w-full mx-32 mt-3"
                         onChange={handleSliderChange}
                         onMount={handleSliderMount} />
                 </div>
             </WaveSurfer>
-            <div className="grid grid-cols-3 bg-red-300">
-                <button onClick={play}>Play / Pause</button>
+            <div className="grid grid-cols-3">
+                <button className="bg-green-200" onClick={play}>Play / Pause</button>
                 {/* <button onClick={generateRegion}>Generate Region</button> */}
-                <button onClick={removeLastRegion}>Remove Last Region</button>
-                <button onClick={toggleTimeline}>Toggle Timeline</button>
+                <button className="bg-red-200" onClick={removeLastRegion}>Remove Last Region</button>
+                <button className="bg-gray-200" onClick={toggleTimeline}>Toggle Timeline</button>
             </div>
 
-            <form className="flex flex-col max-w-lg mt-4 ml-3 justify-items-center">
-                <div>
-                    <label>Start time</label>
-                    <input value={regionStart}
-                        onChange={e => setRegionStart(e.target.value)}></input>
+            <form className="flex justify-around max-w-lg min-w-full mt-4 ml-3">
+                <div className="w-32">
+
+                    <div>
+                        <label>Begin</label>
+                        <input value={regionStart}
+                            onChange={e => setRegionStart(e.target.value)}></input>
+                    </div>
+                    <div>
+                        <label>End</label>
+                        <input value={regionEnd}
+                            onChange={e => setRegionEnd(e.target.value)}></input>
+                    </div>
                 </div>
-                <div>
-                    <label>End time</label>
-                    <input value={regionEnd}
-                        onChange={e => setRegionEnd(e.target.value)}></input>
-                </div>
-                <div>
-                    <label>Subtitle</label>
+                <div className="w-32">
+                    <label>Note</label>
                     <input value={regionSubtitle}
                         onChange={e => setRegionSubtitle(e.target.value)}></input>
                 </div>
-
-                <button onClick={updateAnnotation}>Update Annotation</button>
-                <button onClick={deleteAnnotation}>Delete Annotation</button>
-                <button onClick={removeLastRegion}>Remove Last Created Region</button>
+                <div className="w-72">
+                    <button className="px-6 py-2 mt-2 border-2 border-gray-400 rounded-full hover:bg-red-500" onClick={updateAnnotation}>Update Annotation</button>
+                    <button className="px-6 py-2 mt-1 border-2 border-gray-400 rounded-full hover:bg-red-500" onClick={deleteAnnotation}>Delete Annotation</button>
+                    <button className="px-6 py-2 mt-1 border-2 border-gray-400 rounded-full hover:bg-red-500" onClick={removeLastRegion}>Remove Last Created Region</button>
+                </div>
             </form>
 
             <Annotation data={annotate} />
