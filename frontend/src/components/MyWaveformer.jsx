@@ -4,6 +4,7 @@ import { WaveSurfer, WaveForm } from "wavesurfer-react";
 import RegionsPlugin from "wavesurfer.js/dist/plugin/wavesurfer.regions.min";
 import TimelinePlugin from "wavesurfer.js/dist/plugin/wavesurfer.timeline.min";
 import Annotation from "./Annotation";
+import {readFile } from "fs";
 
 const MyWaveformer = ({ url }) => {
     const wavesurferRef = useRef();
@@ -22,39 +23,56 @@ const MyWaveformer = ({ url }) => {
     const [regionEnd, setRegionEnd] = useState(0)
     const [regionSubtitle, setRegionSubtitle] = useState("")
 
-    // load url's default annotation file
     useEffect(() => {
-        if (url === "") return;
-        const getData = (url) => {
-            // let filelocation = 'data/' + url.substring(url.lastIndexOf('/')+1).split('.').slice(0,-1) + '.json';
-            let filelocation = 'video1.json'
-            console.log(filelocation);
-            fetch(filelocation,{
-                headers : { 
-                  'Content-Type': 'application/json',
-                  'Accept': 'application/json'
-                 }
-               })
-                .then(response => {
-                    const contentType = response.headers.get("content-type");
-                    if (contentType && contentType.indexOf("application/json") !== -1) {
-                        return response.json().then(data => {
-                          // process your JSON data further
-                          console.log("Data " + data)
-                        });
-                      } else {
-                        return response.text().then(text => {
-                          // this is text, do something with it
-                          console.log("Text" + text)
-                        });
-                      }
-                })
-                // .then(json => {
-                //     console.log("Data: " + json);
-                // });
-        }
-        getData(url)
+        console.log("Try to get file")
+        
+        console.log("End of trying")
     }, [url])
+    // load url's default annotation file
+    // useEffect(() => {
+    //     if (url === "") return;
+    //     const getData = (url) => {
+            // let filelocation = 'data/' + url.substring(url.lastIndexOf('/')+1).split('.').slice(0,-1) + '.json';
+            // let filelocation = '../data/video1.json'
+            // console.log(filelocation);
+            // fetch(filelocation)
+            // .then(response => {
+            //     const contentType = response.headers.get("content-type");
+            //     if (contentType && contentType.indexOf("application/json") !== -1) {
+            //         return response.json().then(data => {
+            //           // process your JSON data further
+            //           console.log("JSON " + data)
+            //         });
+            //       } else {
+            //         return response.text().then(text => {
+            //           // this is text, do something with it
+            //           console.log("Text" + text)
+            //         });
+            //       }
+            // })
+            // .then(response => {
+            //     response.json()
+            // }).then(
+            //     data => console.log(data)
+            // )
+    //         fetch('../data/video1.json'
+    //             , {
+    //                 headers: {
+    //                     'Content-Type': 'application/json',
+    //                     'Accept': 'application/json'
+    //                 }
+    //             }
+    //         )
+    //             .then(function (response) {
+    //                 console.log(response)
+    //                 return response.json();
+    //             })
+    //             .then(function (myJson) {
+    //                 console.log(myJson);
+    //             });
+    //     }
+    //     getData(url)
+    // }, [url])
 
     useEffect(() => {
         regionsRef.current = regions;
