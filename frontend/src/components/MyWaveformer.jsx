@@ -4,7 +4,6 @@ import { WaveSurfer, WaveForm } from "wavesurfer-react";
 import RegionsPlugin from "wavesurfer.js/dist/plugin/wavesurfer.regions.min";
 import TimelinePlugin from "wavesurfer.js/dist/plugin/wavesurfer.timeline.min";
 import Annotation from "./Annotation";
-import {readFile } from "fs";
 
 const MyWaveformer = ({ url }) => {
     const wavesurferRef = useRef();
