@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import MyWaveformer from './components/MyWaveformer';
 import PlayList from './components/PlayList';
-
+import Users from './components/Users'
 const tracks = [
   {
     id: 0,
@@ -43,6 +43,7 @@ function App() {
             setSelectedTrack={setSelectedTrack}
           />
         </div>
+        <Users />
       </main>
     </div>
   );

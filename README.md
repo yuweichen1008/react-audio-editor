@@ -11,6 +11,7 @@ Feature: add note(annotation) to waveform region
 ReactJS
 wavesurfer.js
 GraphQL
+graphql-codegen/cli
 
 ##### minor
 TailwindCSS, React Hooks
