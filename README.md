@@ -20,7 +20,6 @@ TailwindCSS, React Hooks
 
 Django
 Graphene-Django
-ProsgreSQL
 
 #### minor
 GraphQL
@@ -28,5 +27,6 @@ GraphQL
 # Status
 
 - [x] UI with TailwindCSS
-- [ ] Backend
-- [ ] Frontend Annotation list
+- [x] Frontend Codegen for GraphQL
+- [x] Backend Django init
+- [ ] Frontend Annotation list with backend integration

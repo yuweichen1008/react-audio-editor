@@ -196,11 +196,6 @@ const MyWaveformer = ({ url }) => {
         [url, regionCreatedHandler]
     );
 
-    const handleSliderMount = useCallback(
-        (sliderbar) => {
-            sliderRef.current = sliderbar;
-        }, [])
-
     const handleSliderChange = (event) => {
         setZoomLevel(event.target.value);
         wavesurferRef.current.zoom(zoomLevel);
@@ -230,7 +225,7 @@ const MyWaveformer = ({ url }) => {
                         value={zoomLevel}
                         className="w-full mx-32 mt-3"
                         onChange={handleSliderChange}
-                        onMount={handleSliderMount} />
+                        ref={sliderRef} />
                 </div>
             </WaveSurfer>
             <div className="grid grid-cols-3">

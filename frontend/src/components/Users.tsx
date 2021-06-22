@@ -2,8 +2,9 @@ import {
     useQuery,
     gql
 } from "@apollo/client";
+import { UserType } from '../generated/graphql';
 
-const QUERY_USERS = gql`
+const userQuery = gql`
     query{
         users {
             id
@@ -14,25 +15,23 @@ const QUERY_USERS = gql`
 `;
 
 const Users = () => {
-    const { data, loading } = useQuery(
-        QUERY_USERS, {
-        pollInterval: 1000
-    }
-    );
-
+    const { loading, error, data } = useQuery(
+        userQuery, {
+        pollInterval: 2000
+    });
     if (loading) return <p>Loading</p>;
+    if (error) return <p>Error! ${error.message}</p>;
     console.log(data.users)
     return (
         <div>
 
-            {data && data.users.map((__typename: string, id: number, firstName: string, lastName: string) => {
+            {data && data.users.map((user: UserType) => {
                 return (
-                    <div key={id}>
-                        {firstName} {lastName}
+                    <div key={user.id}>
+                        {user.firstName} {user.lastName}
                     </div>
                 )
-            })
-            }
+            })}
 
         </div>
     )
