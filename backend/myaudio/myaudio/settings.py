@@ -87,7 +87,8 @@ DATABASES = {
 
 # Graph QL
 GRAPHENE = {
-    'SCHEMA' : 'myapp.schema.schema',
+    'SCHEMA' : 'myaudio.schema.schema',
+    "SCHEMA_INDENT": 2,
 }
 
 # CORS Whitelist
