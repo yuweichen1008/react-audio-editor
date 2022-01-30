@@ -1,5 +1,7 @@
+from django.conf import settings
 from django.db import models
 from users.models import Profile
+import os
 
 PENDING_DOWNLOAD = 'PD'
 PROCESSING = 'PS'
@@ -12,15 +14,17 @@ VIDEO_STATUS = [
     (DONE, 'Done'),
 ]
 
+
 # Video is the model for YouTube ( source ) video details
 class Video(models.Model):
+    
     name = models.CharField(max_length=50, unique=True)
     url  = models.URLField(max_length=400, blank=True, null=True)
     slug = models.SlugField(max_length=255, unique=True)
     description = models.TextField()
     owner = models.CharField(max_length=200, blank=True)
     video_status = models.CharField(max_length=4, choices=VIDEO_STATUS, default=PENDING_DOWNLOAD)
-    file_path = models.FilePathField()
+    file_path = models.FilePathField(path=settings.FILE_PATH_FIELD_DIRECTORY)
     created_date = models.DateTimeField(blank=True, null=True)
     created_by = models.ForeignKey(Profile, on_delete=models.RESTRICT)
 

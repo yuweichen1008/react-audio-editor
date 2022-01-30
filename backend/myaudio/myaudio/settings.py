@@ -142,6 +142,8 @@ MEDIA_URL = '/media/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+FILE_PATH_FIELD_DIRECTORY = os.path.join(BASE_DIR, 'files')
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
