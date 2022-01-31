@@ -24,8 +24,8 @@ class Video(models.Model):
     description = models.TextField()
     owner = models.CharField(max_length=200, blank=True)
     video_status = models.CharField(max_length=4, choices=VIDEO_STATUS, default=PENDING_DOWNLOAD)
-    file_path = models.FilePathField(path=settings.FILE_PATH_FIELD_DIRECTORY)
-    created_date = models.DateTimeField(blank=True, null=True)
+    file_path = models.FilePathField(path=settings.FILE_PATH_FIELD_DIRECTORY,null=True)
+    created_date = models.DateTimeField(blank=True, null=True, auto_now_add=True)
     created_by = models.ForeignKey(Profile, on_delete=models.RESTRICT)
 
     def __str__(self):
