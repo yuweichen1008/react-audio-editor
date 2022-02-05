@@ -11,7 +11,7 @@ const MyWaveformer = ({ url }) => {
     const annotateRef = useRef();
     // const [isEdit, setisEdit] = useState(false);
     const [timelineVis, setTimelineVis] = useState(true);
-    const [annotate, setAnnotate] = useState([]);
+    // const [annotate, setAnnotate] = useState<import('./Annotation').IAnnotate> ();
     const [zoomLevel, setZoomLevel] = useState(5);
 
     const [regions, setRegions] = useState([]);
@@ -77,9 +77,9 @@ const MyWaveformer = ({ url }) => {
         regionsRef.current = regions;
     }, [regions])
 
-    useEffect(() => {
-        annotateRef.current = annotate;
-    }, [annotate])
+    // useEffect(() => {
+    //     annotateRef.current = annotate;
+    // }, [annotate])
 
     const plugins = useMemo(() => {
         return [
@@ -115,6 +115,13 @@ const MyWaveformer = ({ url }) => {
                 ...regionsRef.current,
                 { ...region, data: { ...region.data, systemRegionId: -1 } }
             ]);
+
+            // setAnnotate({
+            //     id: 0,
+            //     start: 0,
+            //     end: 0,
+            //     sbutitle: ""
+            // })
         },
         [regionsRef]
     );
@@ -261,7 +268,7 @@ const MyWaveformer = ({ url }) => {
                 </div>
             </form>
 
-            <Annotation data={annotate} />
+            {/* <Annotation data={annotate} /> */}
         </div>
     );
 }

@@ -1,20 +1,16 @@
 import React from 'react'
-interface Segment {
-    id: number;
-    start: number;
-    end: number;
-    subtitle: string;
-}
-export interface IAnnotate {
-    annote: Segment[]
-}
+import { IAnnotate } from './Annotation.d';
 
 class Annotation extends React.Component<IAnnotate> {
 
     render() {
-        if (this.props.annote) {
-            console.log("Annotation called with Annotation length : " + Object.keys(this.props.annote).length);
+        if (typeof this.props.annote == undefined) {
+            return (
+                <></>
+            )
         }
+
+        console.log("Annotation called with Annotation length : " + Object.keys(this.props.annote).length);
         return (
             <div>
                 <table>
@@ -27,7 +23,7 @@ class Annotation extends React.Component<IAnnotate> {
                         </tr>
                     </thead>
                     <tbody>
-                        {this.props.annote &&
+                        {/* {this.props.annote &&
                             this.props.annote.map(entry => {
                                 return (<tr key={entry.id}>
                                     <td>{entry.start}</td>
@@ -35,7 +31,7 @@ class Annotation extends React.Component<IAnnotate> {
                                     <td>{entry.subtitle}</td>
                                 </tr>)
                             })
-                        }
+                        } */}
                     </tbody>
                 </table>
             </div>
