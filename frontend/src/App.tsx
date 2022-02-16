@@ -32,17 +32,19 @@ function App() {
             placeholder="Input URL" />
           <button className="block px-3 py-3 ml-6 border border-blue-300 rounded-lg">Download YouTube Video</button>
         </div>
-        <div className="justify-center w-full ">
-          <MyWaveformer url={selectedTrack.url} />
-        </div>
-        <div className="justify-center w-full ">
+        <div className="w-full flex">
 
+        <div className="w-84">
           <PlayList
             tracks={tracks}
             selectedTrack={selectedTrack}
             setSelectedTrack={setSelectedTrack}
-          />
+            />
         </div>
+        <div className="w-full">
+          <MyWaveformer url={selectedTrack.url} />
+        </div>
+            </div>
       </main>
     </div>
   );

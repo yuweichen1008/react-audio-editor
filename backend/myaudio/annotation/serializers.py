@@ -2,7 +2,7 @@ from random import choice
 from users.models import Profile
 from annotation.models import VIDEO_STATUS, Video
 from rest_framework import serializers
-
+from django.contrib.auth.models import User
 '''
 url  = models.URLField(max_length=400, blank=True, null=True)
     slug = models.SlugField(max_length=255, unique=True)
@@ -17,10 +17,10 @@ url  = models.URLField(max_length=400, blank=True, null=True)
 class VideoSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     # slug = serializers.SlugField()
-    owner = serializers.CharField(blank=True)
+    owner = serializers.CharField(required=True)
     # video_status = serializers.CharField(choice=VIDEO_STATUS, default=VIDEO_STATUS[0])
     # file_path = serializers.FilePathField()
-    created_date = serializers.DateTimeField(blank=True)
+    created_date = serializers.DateTimeField(required=True)
     created_by = serializers.ReadOnlyField()
     #  = serializers.CharField(max_length=50, unique=True)
 
@@ -42,4 +42,4 @@ class VideoSerializer(serializers.Serializer):
         return instance
 
     class Meta:
-        model = Profile
+        model = Video

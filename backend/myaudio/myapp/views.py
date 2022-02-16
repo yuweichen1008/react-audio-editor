@@ -1,18 +1,13 @@
-# from django.shortcuts import render
-# from rest_framework import status
-# from rest_framework.response import Response
 from django.contrib.auth.models import User
 from myapp.models import Snippet
 from myapp.serializers import SnippetSerializer, UserSerializer
 from rest_framework import generics
-
 from rest_framework import permissions
 from myapp.permissions import IsOwnerOrReadOnly
-
-
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework import renderers
 
 
 @api_view(['GET'])
@@ -23,7 +18,6 @@ def api_root(request, format=None):
     })
 
 
-from rest_framework import renderers
 
 class SnippetHighlight(generics.GenericAPIView):
     queryset = Snippet.objects.all()

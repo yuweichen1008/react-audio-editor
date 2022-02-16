@@ -26,11 +26,11 @@ GraphQL
 
 # Status
 
-- [x] UI with TailwindCSS
-- [x] Frontend Codegen for GraphQL
+- [ ] UI with TailwindCSS
+- [ ] Frontend Codegen for GraphQL
 - [ ] Update/Add region dynamical shown as list
 - [ ] Link with API from Django
 - [ ] Django Rest CSRF token workthrough
-- [ ] auth0 add on
 - [x] Backend Django init
 - [ ] Frontend Annotation list with backend integration
+- [ ] auth0 add on

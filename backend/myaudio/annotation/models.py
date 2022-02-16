@@ -19,13 +19,13 @@ VIDEO_STATUS = [
 class Video(models.Model):
     
     name = models.CharField(max_length=50, unique=True)
-    url  = models.URLField(max_length=400, blank=True, null=True)
+    url  = models.URLField(max_length=400, null=True)
     slug = models.SlugField(max_length=255, unique=True)
     description = models.TextField()
-    owner = models.CharField(max_length=200, blank=True)
+    owner = models.CharField(max_length=200)
     video_status = models.CharField(max_length=4, choices=VIDEO_STATUS, default=PENDING_DOWNLOAD)
     file_path = models.FilePathField(path=settings.FILE_PATH_FIELD_DIRECTORY,null=True)
-    created_date = models.DateTimeField(blank=True, null=True, auto_now_add=True)
+    created_date = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Profile, on_delete=models.RESTRICT)
 
     def __str__(self):
