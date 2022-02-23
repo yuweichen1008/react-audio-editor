@@ -26,7 +26,7 @@ class Video(models.Model):
     video_status = models.CharField(max_length=4, choices=VIDEO_STATUS, default=PENDING_DOWNLOAD)
     file_path = models.FilePathField(path=settings.FILE_PATH_FIELD_DIRECTORY,null=True)
     created_date = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(Profile, on_delete=models.RESTRICT)
+    created_by = models.ForeignKey(Profile, related_name="VideoAsProfiles", on_delete=models.RESTRICT)
 
     def __str__(self):
         return self.name
@@ -54,8 +54,8 @@ class Annotation(models.Model):
     tags = models.ManyToManyField(Tag, blank=True)
     created_date = models.DateTimeField(blank=True, null=True)
 
-    created_by = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    video = models.ForeignKey(Video, related_name="video", on_delete=models.CASCADE)
+    created_by = models.ForeignKey(Profile, related_name="AnnotationAsProfiles", on_delete=models.CASCADE)
+    video = models.ForeignKey(Video, related_name="AnnotationAsVideo", on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name

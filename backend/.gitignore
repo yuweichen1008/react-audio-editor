@@ -4,3 +4,4 @@ env
 *migrations
 files
 media
+db.sqlite3

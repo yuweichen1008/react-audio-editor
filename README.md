@@ -13,16 +13,32 @@ wavesurfer.js
 GraphQL
 graphql-codegen/cli
 
-##### minor
-TailwindCSS, React Hooks
-
 ### Backend
 
 Django
-Graphene-Django
-
-#### minor
 GraphQL
+
+
+### Setup procedure
+
+1. backend
+
+```
+cd backend
+source env/bin/activate
+cd myaudio
+python manage.py runserver
+```
+
+If the backend django project not yet migrate, please migrate it first
+
+2. frontend
+```
+cd frontend
+nvm use 16***
+yarn run start
+```
+
 
 # Status
 
