@@ -1,0 +1,1 @@
+self.__REACT_LOADABLE_MANIFEST="{\"pages/index.tsx -> ../components/VideoPlayer\":{\"id\":\"pages/index.tsx -> ../components/VideoPlayer\",\"files\":[\"static/chunks/src_components_VideoPlayer_tsx.js\"]}}"

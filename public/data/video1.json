@@ -1,0 +1,28 @@
+{
+    "name" : "brahms-st-anthony-chorale-theme-two-pianos",
+    "detail" : "episode 1 of soap opera",
+    "url" : "https://www.mfiles.co.uk/mp3-downloads/brahms-st-anthony-chorale-theme-two-pianos.mp3",
+    "note": [
+        {
+            "id" : 1,
+            "start" : 10,
+            "end" : 20,
+            "note" : "How are you",
+            "tag" : ["greeting", "male"]
+        },
+        {
+            "id" : 2,
+            "start" : 20,
+            "end" : 30,
+            "note" : "fine",
+            "tag" : ["answer", "female"]
+        },
+        {
+            "id" : 3,
+            "start" : 30,
+            "end" : 40,
+            "note" : "Damn it",
+            "tag" : ["curse", "angry"]
+        }
+    ]
+}

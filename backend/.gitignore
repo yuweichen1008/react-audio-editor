@@ -1,7 +1,0 @@
-env
-**.pyc
-*__pycache__
-*migrations
-files
-media
-db.sqlite3

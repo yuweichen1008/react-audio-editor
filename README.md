@@ -1,52 +1,56 @@
-# Project Outline
+# YouTube Subtitle Annotator
 
-This is the full-stack application using wavesurfer and tools to download video from url link, showing the audio waveform in frontend.
+Paste a YouTube URL, watch the video, and follow along with auto-synced captions (Spotify-style). Log in with GitHub to add corrections or comments to any line.
 
-Feature: add note(annotation) to waveform region
+## Stack
 
+- **Next.js 14** — pages router, API routes
+- **TailwindCSS** — dark Spotify-style UI
+- **youtube-transcript** — fetches captions without an API key
+- **NextAuth.js** — GitHub OAuth login
+- **Prisma + SQLite** — stores corrections locally
 
-# System Design
-### Frontend
+## Setup
 
-ReactJS
-wavesurfer.js
-GraphQL
-graphql-codegen/cli
+### 1. Install dependencies and create the database
 
-### Backend
-
-Django
-GraphQL
-
-
-### Setup procedure
-
-1. backend
-
-```
-cd backend
-source env/bin/activate
-cd myaudio
-python manage.py runserver
+```bash
+make setup
 ```
 
-If the backend django project not yet migrate, please migrate it first
+### 2. Configure environment variables
 
-2. frontend
-```
-cd frontend
-nvm use 16***
-yarn run start
+```bash
+cp .env.local.example .env.local
 ```
 
+Edit `.env.local` with your GitHub OAuth credentials.
+Create an OAuth App at [github.com/settings/developers](https://github.com/settings/developers) with the callback URL:
+```
+http://localhost:3000/api/auth/callback/github
+```
 
-# Status
+### 3. Run
 
-- [ ] UI with TailwindCSS
-- [ ] Frontend Codegen for GraphQL
-- [ ] Update/Add region dynamical shown as list
-- [ ] Link with API from Django
-- [ ] Django Rest CSRF token workthrough
-- [x] Backend Django init
-- [ ] Frontend Annotation list with backend integration
-- [ ] auth0 add on
+```bash
+make dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## Usage
+
+1. Paste any YouTube URL or video ID into the input bar and click **Load**
+2. The transcript appears alongside the video, highlighting the current line as it plays
+3. Click any line to jump the video to that timestamp
+4. Log in with GitHub to add corrections or comments — they're saved locally and shown inline
+
+## Status
+
+- [x] YouTube video embed with playback sync
+- [x] Auto-generated caption display (Spotify-style)
+- [x] Click-to-seek on any transcript line
+- [x] GitHub login (NextAuth)
+- [x] Inline corrections/comments saved to SQLite
+- [ ] Export corrected transcript
+- [ ] Support for multiple languages / manual SRT upload
