@@ -23,6 +23,7 @@ const Home: NextPage = () => {
   const [videoId, setVideoId] = useState<string | null>(null)
   const [transcript, setTranscript] = useState<TranscriptLine[]>([])
   const [loading, setLoading] = useState(false)
+  const [whisperLoading, setWhisperLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [errorHint, setErrorHint] = useState<string | null>(null)
   const [transcriptSource, setTranscriptSource] = useState<string | null>(null)
@@ -52,6 +53,28 @@ const Home: NextPage = () => {
       setError(e.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleWhisper() {
+    if (!videoId) return
+    setWhisperLoading(true)
+    setError(null)
+    setErrorHint(null)
+    try {
+      const res = await fetch('/api/transcribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ videoId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Whisper transcription failed')
+      setTranscript(data.lines)
+      setTranscriptSource(data.source)
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
+      setWhisperLoading(false)
     }
   }
 
@@ -215,9 +238,22 @@ const Home: NextPage = () => {
                 <div className="flex items-center justify-center h-full gap-2 text-white/30 text-sm">
                   <span className="animate-spin">⟳</span> Fetching transcript…
                 </div>
+              ) : whisperLoading ? (
+                <div className="flex flex-col items-center justify-center h-full gap-3 text-white/40 text-sm">
+                  <span className="text-2xl animate-pulse">🎙</span>
+                  <p>Transcribing with Whisper AI…</p>
+                  <p className="text-xs text-white/20">This may take a minute for longer videos.</p>
+                </div>
               ) : (
-                <div className="flex items-center justify-center h-full text-white/25 text-sm">
-                  No transcript available for this video.
+                <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-6">
+                  <p className="text-white/25 text-sm">No captions found for this video.</p>
+                  <button
+                    onClick={handleWhisper}
+                    className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white/60 hover:text-white px-5 py-2.5 rounded-lg text-sm transition-all"
+                  >
+                    <span>🎙</span> Transcribe with Whisper AI
+                  </button>
+                  <p className="text-[11px] text-white/15">Requires OPENAI_API_KEY in .env.local</p>
                 </div>
               )}
             </div>

@@ -1,45 +1,61 @@
 # YouTube Subtitle Annotator
 
-Paste a YouTube URL, watch the video, and follow along with auto-synced captions (Spotify-style). Log in with GitHub to add corrections or comments to any line.
+Watch any YouTube video alongside its auto-synced captions — Spotify lyrics style. Click any line to seek the video, log in with GitHub to add corrections or comments, and export the result as an SRT file.
+
+For videos with no captions, Whisper AI can transcribe the audio on demand.
+
+---
 
 ## Stack
 
-- **Next.js 14** — pages router, API routes
-- **TailwindCSS** — dark Spotify-style UI
-- **youtube-transcript** + **yt-dlp** — caption fetching with automatic fallback
-- **NextAuth.js** — GitHub OAuth login
-- **Prisma + SQLite** — stores corrections locally
+| Layer | Tech |
+|---|---|
+| Framework | Next.js 14 (pages router + API routes) |
+| UI | TailwindCSS — dark Spotify-style |
+| Captions | `youtube-transcript` → `yt-dlp` fallback → Whisper AI |
+| Auth | NextAuth.js — GitHub OAuth |
+| Database | Prisma + SQLite (local) |
+
+---
 
 ## Setup
 
-### 1. Install dependencies and create the database
+### 1. Dependencies
 
 ```bash
 make setup
 ```
 
-### 1b. Install yt-dlp (optional but recommended)
+### 2. yt-dlp — recommended
 
-`yt-dlp` is used as a fallback when YouTube's caption API doesn't return results. Without it, many videos will show "No transcript available".
+Enables caption fetching for videos that YouTube's public API misses. Without it, many videos will return "no captions found".
 
 ```bash
-brew install yt-dlp   # macOS
-# or: pip install yt-dlp
+brew install yt-dlp      # macOS
+pip install yt-dlp       # any platform
 ```
 
-### 2. Configure environment variables
+### 3. Environment variables
 
 ```bash
 cp .env.local.example .env.local
 ```
 
-Edit `.env.local` with your GitHub OAuth credentials.
-Create an OAuth App at [github.com/settings/developers](https://github.com/settings/developers) with the callback URL:
-```
-http://localhost:3000/api/auth/callback/github
-```
+| Variable | Required | Description |
+|---|---|---|
+| `GITHUB_ID` | Yes | GitHub OAuth App client ID |
+| `GITHUB_SECRET` | Yes | GitHub OAuth App secret |
+| `NEXTAUTH_SECRET` | Yes | Any random string |
+| `NEXTAUTH_URL` | Yes | `http://localhost:3000` |
+| `OPENAI_API_KEY` | Optional | Enables Whisper AI transcription |
 
-### 3. Run
+Create a GitHub OAuth App at [github.com/settings/developers](https://github.com/settings/developers).
+Set the callback URL to: `http://localhost:3000/api/auth/callback/github`
+
+> **Port note:** The app is pinned to port 3000. If something else is using it:
+> `lsof -ti:3000 | xargs kill -9`
+
+### 4. Run
 
 ```bash
 make dev
@@ -47,21 +63,48 @@ make dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-## Usage
+---
 
-1. Paste any YouTube URL or video ID into the input bar and click **Load**
-2. The transcript appears alongside the video, highlighting the current line as it plays
-3. Click any line to jump the video to that timestamp
-4. Log in with GitHub to add corrections or comments — they're saved locally and shown inline
+## How caption fetching works
 
-## Status
+```
+Load video URL
+    │
+    ├─ 1. youtube-transcript (no dependencies)
+    │         └─ success → display transcript
+    │
+    ├─ 2. yt-dlp (install separately)
+    │         └─ success → display transcript  [via yt-dlp]
+    │
+    └─ 3. No captions found
+              └─ "Transcribe with Whisper AI" button
+                        └─ yt-dlp downloads audio → OpenAI Whisper API
+                                  └─ timestamped transcript  [via whisper]
+```
 
-- [x] YouTube video embed with playback sync
-- [x] Auto-generated caption display (Spotify-style)
-- [x] Click-to-seek on any transcript line
-- [x] GitHub login (NextAuth)
-- [x] Inline corrections/comments saved to SQLite
-- [x] Export transcript as SRT file
+Whisper costs ~$0.006 / minute of audio (~6¢ for a 10-minute video).
+
+---
+
+## Features
+
+- [x] YouTube embed with playback sync
+- [x] Spotify-style transcript — active line highlights and auto-scrolls
+- [x] Click any line to seek the video to that timestamp
+- [x] GitHub login via NextAuth
+- [x] Inline corrections and comments saved to local SQLite
+- [x] Export transcript as `.srt` file
 - [x] yt-dlp fallback for videos without public captions
-- [ ] Whisper AI transcription for videos with no captions at all
-- [ ] Support for multiple languages / manual SRT upload
+- [x] Whisper AI transcription for videos with no captions at all
+
+---
+
+## Future ideas
+
+- **Language picker** — fetch captions in a specific language (`yt-dlp` supports any)
+- **Search transcript** — filter lines as you type
+- **Export with corrections merged** — SRT that folds in user edits
+- **Manual SRT upload** — annotate a subtitle file you already have
+- **Local Whisper** — use [whisper.cpp](https://github.com/ggerganov/whisper.cpp) instead of the OpenAI API (free, offline)
+- **Deploy to Vercel** — swap SQLite → Postgres, push, done
+- **Shareable links** — anyone with the URL sees the video and its community corrections
