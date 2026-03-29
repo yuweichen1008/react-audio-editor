@@ -6,7 +6,7 @@ Paste a YouTube URL, watch the video, and follow along with auto-synced captions
 
 - **Next.js 14** — pages router, API routes
 - **TailwindCSS** — dark Spotify-style UI
-- **youtube-transcript** — fetches captions without an API key
+- **youtube-transcript** + **yt-dlp** — caption fetching with automatic fallback
 - **NextAuth.js** — GitHub OAuth login
 - **Prisma + SQLite** — stores corrections locally
 
@@ -16,6 +16,15 @@ Paste a YouTube URL, watch the video, and follow along with auto-synced captions
 
 ```bash
 make setup
+```
+
+### 1b. Install yt-dlp (optional but recommended)
+
+`yt-dlp` is used as a fallback when YouTube's caption API doesn't return results. Without it, many videos will show "No transcript available".
+
+```bash
+brew install yt-dlp   # macOS
+# or: pip install yt-dlp
 ```
 
 ### 2. Configure environment variables
@@ -52,5 +61,7 @@ Open [http://localhost:3000](http://localhost:3000).
 - [x] Click-to-seek on any transcript line
 - [x] GitHub login (NextAuth)
 - [x] Inline corrections/comments saved to SQLite
-- [ ] Export corrected transcript
+- [x] Export transcript as SRT file
+- [x] yt-dlp fallback for videos without public captions
+- [ ] Whisper AI transcription for videos with no captions at all
 - [ ] Support for multiple languages / manual SRT upload

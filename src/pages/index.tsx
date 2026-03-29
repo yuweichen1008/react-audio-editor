@@ -24,6 +24,8 @@ const Home: NextPage = () => {
   const [transcript, setTranscript] = useState<TranscriptLine[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [errorHint, setErrorHint] = useState<string | null>(null)
+  const [transcriptSource, setTranscriptSource] = useState<string | null>(null)
   const [currentTime, setCurrentTime] = useState(0)
   const seekRef = useRef<{ seek: (t: number) => void } | null>(null)
 
@@ -31,19 +33,52 @@ const Home: NextPage = () => {
     const id = parseVideoId(urlInput.trim())
     if (!id) { setError('Could not parse a YouTube video ID from that URL.'); return }
     setError(null)
+    setErrorHint(null)
+    setTranscriptSource(null)
     setLoading(true)
     setTranscript([])
     setVideoId(id)
     try {
       const res = await fetch(`/api/transcript?videoId=${id}`)
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to fetch transcript')
-      setTranscript(data)
+      if (!res.ok) {
+        setError(data.error || 'Failed to fetch transcript')
+        setErrorHint(data.hint || null)
+        return
+      }
+      setTranscript(data.lines)
+      setTranscriptSource(data.source)
     } catch (e: any) {
       setError(e.message)
     } finally {
       setLoading(false)
     }
+  }
+
+  function exportSrt() {
+    if (!transcript.length) return
+    const pad = (n: number, d = 2) => String(n).padStart(d, '0')
+    const toSrtTime = (ms: number) => {
+      const h = Math.floor(ms / 3600000)
+      const m = Math.floor((ms % 3600000) / 60000)
+      const s = Math.floor((ms % 60000) / 1000)
+      const f = ms % 1000
+      return `${pad(h)}:${pad(m)}:${pad(s)},${pad(f, 3)}`
+    }
+    const srt = transcript
+      .map((line, i) => [
+        i + 1,
+        `${toSrtTime(line.offset)} --> ${toSrtTime(line.offset + line.duration)}`,
+        line.text,
+        '',
+      ].join('\n'))
+      .join('\n')
+    const blob = new Blob([srt], { type: 'text/plain' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `${videoId}.srt`
+    a.click()
+    URL.revokeObjectURL(a.href)
   }
 
   const handleSeek = useCallback((seconds: number) => {
@@ -116,7 +151,12 @@ const Home: NextPage = () => {
             {loading ? '…' : 'Load'}
           </button>
         </div>
-        {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
+        {error && (
+          <div className="mt-2">
+            <p className="text-xs text-red-400">{error}</p>
+            {errorHint && <p className="text-xs text-white/30 mt-0.5">{errorHint}</p>}
+          </div>
+        )}
         {!session && !error && (
           <p className="mt-1.5 text-xs text-white/25">
             Login with GitHub to add notes and corrections.
@@ -143,11 +183,23 @@ const Home: NextPage = () => {
           {/* Right: transcript */}
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="shrink-0 px-5 py-3 flex items-center justify-between border-b border-white/5">
-              <span className="text-[11px] font-semibold tracking-widest uppercase text-white/30">
-                Transcript
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-semibold tracking-widest uppercase text-white/30">
+                  Transcript
+                </span>
+                {transcriptSource && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/25">
+                    via {transcriptSource}
+                  </span>
+                )}
+              </div>
               {transcript.length > 0 && (
-                <span className="text-[11px] text-white/20">{transcript.length} lines</span>
+                <button
+                  onClick={exportSrt}
+                  className="text-[11px] text-white/30 hover:text-[#1db954] transition-colors flex items-center gap-1"
+                >
+                  ↓ Export SRT
+                </button>
               )}
             </div>
 
